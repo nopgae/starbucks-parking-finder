@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>스타벅스 주차 찾기</title>
   <link rel="stylesheet" href="css/style.css" />
-  <!-- Naver Maps SDK — replace YOUR_CLIENT_ID with your NAVER_MAPS_CLIENT_ID -->
-  <script type="text/javascript"
-    src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID&submodules=geocoder">
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      const s = document.createElement("script");
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=onMapsReady&loading=async&libraries=marker`;
+      s.async = true;
+      document.head.appendChild(s);
+    })();
   </script>
 </head>
 <body>

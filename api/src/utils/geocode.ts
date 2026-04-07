@@ -1,4 +1,5 @@
 import axios from "axios";
+import { rateLimiter } from "./rateLimiter";
 
 export interface GeoResult {
   lat: number;
@@ -6,37 +7,47 @@ export interface GeoResult {
   address: string;
 }
 
-// ── Naver Geocoding API ───────────────────────────────────────────────────────
-// Docs: https://api.ncloud-docs.com/docs/ai-naver-mapsgeocoding
-// Keys: NAVER_CLIENT_ID + NAVER_CLIENT_SECRET from console.ncloud.com
+// ── Naver Local Search API ────────────────────────────────────────────────────
+// Keys: NAVER_SEARCH_CLIENT_ID + NAVER_SEARCH_CLIENT_SECRET (Naver Developers)
+// Free tier: 25,000 calls/day. We enforce a soft cap of 20,000 via rateLimiter.
 // ─────────────────────────────────────────────────────────────────────────────
 export async function geocode(query: string): Promise<GeoResult | null> {
-  const clientId = process.env.NAVER_CLIENT_ID;
-  const clientSecret = process.env.NAVER_CLIENT_SECRET;
+  const clientId = process.env.NAVER_SEARCH_CLIENT_ID;
+  const clientSecret = process.env.NAVER_SEARCH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    console.warn("[geocode] NAVER_CLIENT_ID / NAVER_CLIENT_SECRET not set — using fallback");
+    console.warn("[geocode] NAVER_SEARCH_CLIENT_ID / NAVER_SEARCH_CLIENT_SECRET not set — using fallback");
+    return fallbackGeocode(query);
+  }
+
+  // Block if daily soft limit reached — avoids surprise charges
+  if (!rateLimiter.check("naver_search")) {
+    console.warn("[geocode] Rate limit reached — using fallback");
     return fallbackGeocode(query);
   }
 
   try {
-    const res = await axios.get("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode", {
-      params: { query },
+    // Naver Local Search API — finds places, stations, addresses by name
+    const res = await axios.get("https://openapi.naver.com/v1/search/local.json", {
+      params: { query, display: 1 },
       headers: {
-        "X-NCP-APIGW-API-KEY-ID": clientId,
-        "X-NCP-APIGW-API-KEY": clientSecret,
+        "X-Naver-Client-Id": clientId,
+        "X-Naver-Client-Secret": clientSecret,
       },
       timeout: 5000,
     });
 
-    const addresses = res.data?.addresses ?? [];
-    if (addresses.length === 0) return null;
+    rateLimiter.record("naver_search"); // count only successful calls
 
-    const first = addresses[0];
+    const items = res.data?.items ?? [];
+    if (items.length === 0) return fallbackGeocode(query);
+
+    const first = items[0];
+    // Naver Local Search returns coords in KATECH (mapx/mapy) — divide by 1e7 for WGS84
     return {
-      lat: parseFloat(first.y),
-      lng: parseFloat(first.x),
-      address: first.roadAddress || first.jibunAddress || query,
+      lat: parseFloat(first.mapy) / 1e7,
+      lng: parseFloat(first.mapx) / 1e7,
+      address: first.roadAddress || first.address || query,
     };
   } catch (err) {
     console.error("[geocode] Naver API error:", (err as Error).message);

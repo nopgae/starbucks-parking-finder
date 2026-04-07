@@ -17,18 +17,22 @@ let allStores = [];
 let activeFilter = "all";
 let userLocation = null;
 
+// ── Google Maps callback ──────────────────────────────────────────────────────
+window.onMapsReady = function () { initMap(); };
+
 // ── Init map ──────────────────────────────────────────────────────────────────
 function initMap() {
-  map = new naver.maps.Map("map", {
-    center: new naver.maps.LatLng(37.5665, 126.9780), // Seoul city hall
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 37.5665, lng: 126.9780 }, // Seoul city hall
     zoom: 13,
-    mapTypeId: naver.maps.MapTypeId.NORMAL,
+    mapId: "DEMO_MAP_ID",
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
   });
 
-  // Load stores visible in current map bounds on idle
-  naver.maps.Event.addListener(map, "idle", () => {
-    const bounds = map.getBounds();
-    const center = bounds.getCenter();
+  map.addListener("idle", () => {
+    const center = map.getCenter();
     loadNearbyStores(center.lat(), center.lng());
   });
 }
@@ -56,41 +60,40 @@ async function loadNearbyStores(lat, lng, radius = 5) {
 
 // ── Render markers ────────────────────────────────────────────────────────────
 function renderMarkers(stores) {
-  // Clear existing markers
-  markers.forEach((m) => m.setMap(null));
+  markers.forEach((m) => { m.map = null; });
   markers = [];
 
   stores.forEach((store) => {
     const cfg = PARKING_CONFIG[store.parkingType] ?? PARKING_CONFIG.UNKNOWN;
 
-    const marker = new naver.maps.Marker({
-      position: new naver.maps.LatLng(store.lat, store.lng),
+    const pin = document.createElement("div");
+    pin.style.cssText = `
+      background:${cfg.color};
+      color:#fff;
+      border-radius:50%;
+      width:32px;height:32px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:15px;
+      box-shadow:0 2px 6px rgba(0,0,0,.35);
+      border:2px solid #fff;
+      cursor:pointer;
+    `;
+    pin.textContent = cfg.emoji;
+
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      position: { lat: store.lat, lng: store.lng },
       map,
-      icon: {
-        content: `
-          <div style="
-            background:${cfg.color};
-            color:#fff;
-            border-radius:50%;
-            width:32px;height:32px;
-            display:flex;align-items:center;justify-content:center;
-            font-size:14px;
-            box-shadow:0 2px 6px rgba(0,0,0,.3);
-            border:2px solid #fff;
-            cursor:pointer;
-          ">${cfg.emoji}</div>`,
-        anchor: new naver.maps.Point(16, 16),
-      },
+      content: pin,
+      title: store.name,
     });
 
-    naver.maps.Event.addListener(marker, "click", () => openDetail(store));
+    marker.addListener("click", () => openDetail(store));
     markers.push(marker);
   });
 }
 
 // ── Open detail sheet ─────────────────────────────────────────────────────────
 async function openDetail(store) {
-  // Fetch full detail
   const res = await fetch(`${API_BASE}/stores/${store.id}`);
   const full = await res.json();
 
@@ -107,14 +110,14 @@ async function openDetail(store) {
       </div>`
     : `<div class="no-parking-card">⚫ 이 매장은 주차 공간이 없습니다</div>`;
 
-  const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(full.name + " 스타벅스")}`;
+  const googleMapUrl = `https://www.google.com/maps/search/${encodeURIComponent(full.name + " 스타벅스")}`;
 
   document.getElementById("detail-content").innerHTML = `
     <div class="detail-name">${full.name}</div>
     <div class="detail-addr">${full.roadAddress || full.address}</div>
     ${parkingCard}
     <div class="detail-actions">
-      <button class="action-btn btn-naver" onclick="window.open('${naverMapUrl}','_blank')">🗺 네이버 지도</button>
+      <button class="action-btn btn-naver" onclick="window.open('${googleMapUrl}','_blank')">🗺 구글 지도</button>
       <button class="action-btn btn-call" onclick="window.location.href='tel:${full.phone}'">📞 전화</button>
       <button class="action-btn btn-report" onclick="openReport(${full.id})">신고</button>
     </div>
@@ -122,9 +125,7 @@ async function openDetail(store) {
   `;
 
   document.getElementById("detail-sheet").classList.remove("hidden");
-
-  // Pan map to store
-  map.panTo(new naver.maps.LatLng(full.lat, full.lng));
+  map.panTo({ lat: full.lat, lng: full.lng });
 }
 
 // ── Natural language search ───────────────────────────────────────────────────
@@ -147,9 +148,8 @@ async function runSearch(query) {
       return;
     }
 
-    // Center map on geocoded location
     if (data.geocoded) {
-      map.setCenter(new naver.maps.LatLng(data.geocoded.lat, data.geocoded.lng));
+      map.setCenter({ lat: data.geocoded.lat, lng: data.geocoded.lng });
       map.setZoom(14);
     }
 
@@ -192,7 +192,7 @@ function showResultPanel(data) {
 // ── Report ────────────────────────────────────────────────────────────────────
 async function openReport(storeId) {
   const note = prompt("어떤 점이 잘못됐나요? (선택사항)");
-  if (note === null) return; // cancelled
+  if (note === null) return;
 
   const type = confirm("정보가 없어진 건가요?\n확인 = 정보없음, 취소 = 정보가 틀림")
     ? "OUTDATED"
@@ -233,7 +233,7 @@ document.getElementById("locate-btn").addEventListener("click", () => {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      map.setCenter(new naver.maps.LatLng(userLocation.lat, userLocation.lng));
+      map.setCenter(userLocation);
       map.setZoom(14);
       loadNearbyStores(userLocation.lat, userLocation.lng);
     },
@@ -247,20 +247,4 @@ document.getElementById("result-close").addEventListener("click", () => {
 
 document.getElementById("detail-handle").addEventListener("click", () => {
   document.getElementById("detail-sheet").classList.add("hidden");
-});
-
-// ── Boot ──────────────────────────────────────────────────────────────────────
-// naver.maps is loaded async via SDK script tag
-window.addEventListener("load", () => {
-  if (typeof naver !== "undefined" && naver.maps) {
-    initMap();
-  } else {
-    // SDK not yet ready (no client ID set)
-    document.getElementById("map").innerHTML =
-      `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:14px;flex-direction:column;gap:8px;">
-        <div>🗺</div>
-        <div>Naver Maps Client ID를 <code>index.html</code>에 설정해주세요.</div>
-        <div style="font-size:12px;color:#bbb;">NAVER_MAPS_CLIENT_ID → YOUR_CLIENT_ID 교체</div>
-      </div>`;
-  }
 });

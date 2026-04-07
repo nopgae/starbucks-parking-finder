@@ -1,6 +1,5 @@
 node_modules/
 dist/
-.env
 *.log
 
 # Playwright browser cache
@@ -13,3 +12,17 @@ scraper/data/raw/stores-raw.json
 
 # One-off investigation scripts
 scraper/probe*.js
+
+# ── API keys — NEVER commit any of these ─────────────────────────────────────
+# Naver Maps client ID (frontend)
+frontend/config.js
+# All .env files anywhere in the repo
+**/.env
+.env
+.env.*
+# Common secret file patterns
+*.pem
+*.key
+secrets.*
+*secret*
+*credential*
