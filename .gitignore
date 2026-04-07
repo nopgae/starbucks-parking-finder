@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Playwright browser cache
+/scraper/node_modules/
+
+# Large raw data files (too big for git, can be regenerated)
+scraper/data/raw/intercepted-requests.json
+scraper/data/raw/stores-enriched.json
+scraper/data/raw/stores-raw.json
+
+# One-off investigation scripts
+scraper/probe*.js
