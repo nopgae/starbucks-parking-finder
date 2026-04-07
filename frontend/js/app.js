@@ -1,5 +1,4 @@
-// ── Config ────────────────────────────────────────────────────────────────────
-const API_BASE = "http://localhost:3000";
+// ── Config — API_BASE is set in config.js (gitignored) ───────────────────────
 
 // ── Parking type config ───────────────────────────────────────────────────────
 const PARKING_CONFIG = {
