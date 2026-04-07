@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ParkingType {
+  FREE
+  PAID
+  VALIDATION
+  UNAVAILABLE
+  UNKNOWN
+}
+
+enum ReportType {
+  INCORRECT
+  OUTDATED
+  NEW_INFO
+}
+
+model Store {
+  id          Int     @id @default(autoincrement())
+  storeCode   String  @unique
+  bizCode     String  @unique
+  name        String
+  address     String
+  roadAddress String
+  lat         Float
+  lng         Float
+  sido        String
+  sidoCode    String
+  gugun       String
+  gugunCode   String
+  phone       String
+  notice      String?
+  themeState  String?
+
+  // Feature flags (decoded from themeState)
+  hasDriveThru Boolean @default(false)
+  hasParking   Boolean @default(false)
+
+  // Parking — raw + structured
+  parkingRaw       String?
+  parkingType      ParkingType @default(UNKNOWN)
+  parkCapacity     String?     // e.g. "100대 이상"
+  parkLocation     String?     // e.g. "지하 3~7층"
+  parkPriceRaw     String?     // e.g. "10분당 1,000원"
+  parkCondition    String?     // e.g. "구매시 2시간 무료"
+  parkPayment      String?     // e.g. "카드전용 (현금불가)"
+  parkLastVerified DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports ParkingReport[]
+
+  @@index([lat, lng])
+  @@index([sido, gugun])
+  @@index([parkingType])
+  @@index([hasParking])
+}
+
+model ParkingReport {
+  id        Int        @id @default(autoincrement())
+  storeId   Int
+  store     Store      @relation(fields: [storeId], references: [id])
+  type      ReportType
+  note      String?
+  createdAt DateTime   @default(now())
+
+  @@index([storeId])
+}
