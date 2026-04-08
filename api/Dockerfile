@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Prisma needs openssl on Alpine
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Install dependencies
@@ -17,4 +20,5 @@ RUN npm run build
 
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+# Run migrations then start server
+CMD npx prisma migrate deploy && node dist/index.js
