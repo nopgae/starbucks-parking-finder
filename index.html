@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스타벅스 주차 찾기</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      const s = document.createElement("script");
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=onMapsReady&loading=async&libraries=marker`;
+      s.async = true;
+      document.head.appendChild(s);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <div id="logo">🟢 스타벅스 주차 찾기</div>
+
+    <!-- Natural language search -->
+    <div id="search-wrap">
+      <input
+        id="search-input"
+        type="text"
+        placeholder="강남역 근처에 무료 주차되는 스타벅스"
+        autocomplete="off"
+      />
+      <button id="search-btn">검색</button>
+    </div>
+
+    <!-- Filters -->
+    <div id="filter-bar">
+      <button class="filter-chip active" data-type="all">전체</button>
+      <button class="filter-chip" data-type="FREE">🟢 무료</button>
+      <button class="filter-chip" data-type="VALIDATION">🔵 조건부</button>
+      <button class="filter-chip" data-type="PAID">🟠 유료</button>
+      <button class="filter-chip" data-type="drive">드라이브스루</button>
+      <button id="locate-btn">📍 내 위치</button>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Result panel (slides up on mobile) -->
+  <div id="result-panel" class="hidden">
+    <div id="result-header">
+      <span id="result-count"></span>
+      <button id="result-close">✕</button>
+    </div>
+    <div id="result-list"></div>
+  </div>
+
+  <!-- Store detail bottom sheet -->
+  <div id="detail-sheet" class="hidden">
+    <div id="detail-handle"></div>
+    <div id="detail-content"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
