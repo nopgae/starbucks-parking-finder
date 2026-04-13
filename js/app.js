@@ -24,6 +24,7 @@ function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 37.5665, lng: 126.9780 }, // Seoul city hall
     zoom: 13,
+    mapId: "DEMO_MAP_ID",
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: false,
@@ -58,24 +59,21 @@ async function loadNearbyStores(lat, lng, radius = 5) {
 
 // ── Render markers ────────────────────────────────────────────────────────────
 function renderMarkers(stores) {
-  markers.forEach((m) => { m.map = null; });
+  markers.forEach((m) => { m.map = null; }); // AdvancedMarkerElement uses .map not .setMap()
   markers = [];
 
   stores.forEach((store) => {
     const cfg = PARKING_CONFIG[store.parkingType] ?? PARKING_CONFIG.UNKNOWN;
 
-    const marker = new google.maps.Marker({
+    const pin = document.createElement("div");
+    pin.style.cssText = `background:${cfg.color};color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff;cursor:pointer;`;
+    pin.textContent = cfg.emoji;
+
+    const marker = new google.maps.marker.AdvancedMarkerElement({
       position: { lat: store.lat, lng: store.lng },
       map,
+      content: pin,
       title: store.name,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: cfg.color,
-        fillOpacity: 1,
-        strokeColor: "#fff",
-        strokeWeight: 2,
-        scale: 10,
-      },
     });
 
     marker.addListener("click", () => openDetail(store));
