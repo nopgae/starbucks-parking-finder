@@ -6,6 +6,13 @@ import { rateLimiter } from "./utils/rateLimiter";
 
 const app = Fastify({ logger: true });
 
+// Fastify's default 500 body echoes the raw error (Prisma messages include DB user and file paths)
+app.setErrorHandler((err, req, reply) => {
+  const status = err.statusCode ?? 500;
+  if (status >= 500) req.log.error(err);
+  reply.status(status).send({ error: status >= 500 ? "Internal Server Error" : err.message });
+});
+
 async function start() {
   await app.register(cors, { origin: true });
   await app.register(storeRoutes);
