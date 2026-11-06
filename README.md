@@ -34,7 +34,7 @@ The official store locator shows parking only as free-text notes per store, with
 3. **Natural-language query parser** (`api/src/utils/queryParser.ts`): pulls location, minimum hours (`두시간`, `2시간`), parking type and drive-thru from a Korean query; location is geocoded with the Naver Local Search API.
 4. **REST API** (Fastify + Prisma + PostgreSQL) and a **map frontend** (Google Maps JS, plain HTML/JS) deployed to GitHub Pages.
 5. **AI-readable data + skill**: `api/scripts/export-data.ts` writes `data/index.md`, one Markdown file per 시/구 under `data/regions/` (parking note, free time, Naver Map link per store) and `skills/starbucks-parking/stores.csv` for the Claude Code / Codex skill.
-6. **Tests + CI**: 20 unit tests for the two parsers (`node --test`), a TypeScript build, a check that the exported data matches the current parser, and a skill search smoke test, run by GitHub Actions.
+6. **Tests + CI**: 21 unit tests for the two parsers (`node --test`), a TypeScript build, a check that the exported data matches the current parser, and a skill search smoke test, run by GitHub Actions.
 
 ## Results
 
@@ -72,7 +72,7 @@ open frontend/index.html
 
 ## Limitations
 
-- Parking info is the store's own free-text note; the parser is rule-based and 39 stores stay `unknown` (mostly notes that give only a lot location and capacity, with no word on cost; one official note is literally `#NAME?`). A store counts as `unavailable` only when its note opens with "no parking" and points to no usable lot of its own building (a nearby public lot still counts as unavailable). Sample check: TODO after hand-labeling `scraper/data/eval/parking-sample-50.tsv`.
+- Parking info is the store's own free-text note; the parser is rule-based and 39 stores stay `unknown` (mostly notes that give only a lot location and capacity, with no word on cost; one official note is literally `#NAME?`). A store counts as `unavailable` only when its note opens with "no parking" and points to no usable lot of its own building (a nearby public lot still counts as unavailable). Sample check: 50 random notes (seed 42, `scraper/data/eval/parking-sample-50.tsv`) labeled by Claude reading each note: 42/50 (84%) before the parser work, 47/50 (94%) now. The 3 misses are where "free vs conditional" is a judgment call ("최초 1시간 무료, 이후 유료"; "파트너에게 요청" as the only condition).
 - Data is a snapshot (collection date in `scraper/data/normalized/collected-at.txt`) and is not refreshed automatically. Refresh: `cd scraper && npm run scrape && npm run enrich` (move `data/raw/stores-enriched.json` away first, `enrich` resumes from it), then `cd ../api && npx ts-node scripts/export-data.ts`. The skill bundles the snapshot, so re-run `skills/install.sh` after pulling new data.
 - Free time (`freeMinutes`) takes the longest duration in the note that is not a rate, price or overage ("10분당", "1시간 5천원", "30분 초과"), so tiers report their top tier (e.g. "5만원 이상 5시간" → 5h). The FREE / VALIDATION line is fuzzy for notes like "2시간 무료, 파트너에게 요청"; the skill and region files therefore tell the AI to answer from the original note.
 - The query parser uses suffix rules (`역`, `동`, `구`, ...), so unusual place names may not be recognized; without Naver API keys it falls back to a small built-in table of station coordinates.
