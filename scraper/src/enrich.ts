@@ -138,8 +138,10 @@ async function run() {
   console.log(`       Errors: ${errors}`);
 
   // Build parking-specific normalized output
+  // Keep every store that has a note, "주차 불가" included: the API parser classifies it, and dropping it
+  // would make "OO점 주차 돼?" read as "no info" instead of "no parking".
   const parking = enriched
-    .filter((s: Record<string, unknown>) => isParkingAvailable(s.park_info as string | null))
+    .filter((s: Record<string, unknown>) => (s.park_info as string | null)?.trim())
     .map((s: Record<string, unknown>) => ({
       storeCode: s.s_code,
       bizCode: s.s_biz_code,
@@ -161,6 +163,7 @@ async function run() {
 
   fs.mkdirSync(NORM_DIR, { recursive: true });
   fs.writeFileSync(normPath, JSON.stringify(parking, null, 2), "utf-8");
+  fs.writeFileSync(path.join(NORM_DIR, "collected-at.txt"), new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) + "\n");
 
   const typeCount = parking.reduce(
     (acc, s) => {
