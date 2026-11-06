@@ -123,3 +123,8 @@ test("'주차 불가' with the building's own paid lot is PAID", () => {
     assert.equal(parseParking(raw).parkingType, "PAID", raw);
   }
 });
+
+test("free 'for store customers' is VALIDATION", () => {
+  assert.equal(parseParking("4. 주차조건 - 스타벅스 이용고객 2시간 무료").parkingType, "VALIDATION");
+  assert.equal(parseParking("4.주차조건- 무료(매장 이용 고객)").parkingType, "VALIDATION");
+});
