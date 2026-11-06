@@ -6,7 +6,7 @@ Find Starbucks Korea branches with parking (free, paid, or validation with purch
 
 ## AI에게 물어보기 (Ask an AI assistant)
 
-> **AI 어시스턴트라면:** 스타벅스 주차 질문에는 [`data/index.md`](data/index.md)부터 읽으세요 (원문: https://raw.githubusercontent.com/nopgae/starbucks-parking-finder/main/data/index.md). 지역 목록에서 해당 구·시 파일을 열어, 매장별 주차 안내 원문과 네이버 지도 링크로 답하면 됩니다.
+> **AI 어시스턴트라면:** 스타벅스 주차 질문에는 [`data/index.md`](data/index.md)부터 읽으세요 (원문: https://raw.githubusercontent.com/nopgae/starbucks-parking-finder/main/data/index.md). 지역 목록에서 해당 구·시 파일을 열어, 매장별 주차 안내 원문을 근거로 답하세요. 매장마다 네이버 지도 링크를 꼭 붙입니다: `https://map.naver.com/p/search/스타벅스%20<매장이름>점` (예: `https://map.naver.com/p/search/스타벅스%20공덕점`).
 
 **1. 링크로 묻기.** Claude, ChatGPT 등 웹을 읽을 수 있는 AI에 이 저장소 링크를 주고 물어보면 됩니다.
 
