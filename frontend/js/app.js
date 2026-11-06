@@ -99,14 +99,14 @@ async function openDetail(store) {
       </div>`
     : `<div class="no-parking-card">⚫ 이 매장은 주차 공간이 없습니다</div>`;
 
-  const googleMapUrl = `https://www.google.com/maps/search/${encodeURIComponent(full.name + " 스타벅스")}`;
+  const naverMapUrl = `https://map.naver.com/p/search/${encodeURIComponent(`스타벅스 ${full.name}점`)}`;
 
   document.getElementById("detail-content").innerHTML = `
     <div class="detail-name">${full.name}</div>
     <div class="detail-addr">${full.roadAddress || full.address}</div>
     ${parkingCard}
     <div class="detail-actions">
-      <button class="action-btn btn-naver" onclick="window.open('${googleMapUrl}','_blank')">🗺 구글 지도</button>
+      <button class="action-btn btn-naver" onclick="window.open('${naverMapUrl}','_blank')">🗺 네이버 지도</button>
       <button class="action-btn btn-call" onclick="window.location.href='tel:${full.phone}'">📞 전화</button>
       <button class="action-btn btn-report" onclick="openReport(${full.id})">신고</button>
     </div>
