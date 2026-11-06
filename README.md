@@ -36,7 +36,7 @@ The official store locator shows parking only as free-text notes per store, with
 
 ## Results
 
-- 2,212 stores collected (2026-11-06); 2,199 have a parking note, classified by the current parser as free 401 · validation 1,043 · paid 86 · unavailable 630 · unknown 39 (`scraper/data/normalized/`; reproduce with `cd api && npx ts-node scripts/parking-eval.ts`).
+- 2,212 stores collected (2026-11-06); 2,199 have a parking note, classified by the current parser as free 356 · validation 1,088 · paid 86 · unavailable 630 · unknown 39 (`scraper/data/normalized/`; reproduce with `cd api && npx ts-node scripts/parking-eval.ts`).
 
 ## API (archived)
 
@@ -69,7 +69,7 @@ open frontend/index.html
 
 ## Limitations
 
-- Parking info is the store's own free-text note; the parser is rule-based and 39 stores stay `unknown` (mostly notes that give only a lot location and capacity, with no word on cost; one official note is literally `#NAME?`). A store counts as `unavailable` only when its note opens with "no parking" and points to no usable lot of its own building (a nearby public lot still counts as unavailable). Sample check: 50 random notes (seed 42, `scraper/data/eval/parking-sample-50.tsv`) labeled by Claude reading each note: 42/50 (84%) before the parser work, 47/50 (94%) now. The 3 misses are where "free vs conditional" is a judgment call ("최초 1시간 무료, 이후 유료"; "파트너에게 요청" as the only condition).
+- Parking info is the store's own free-text note; the parser is rule-based and 39 stores stay `unknown` (mostly notes that give only a lot location and capacity, with no word on cost; one official note is literally `#NAME?`). A store counts as `unavailable` only when its note opens with "no parking" and points to no usable lot of its own building (a nearby public lot still counts as unavailable). Sample check: 50 random notes (seed 42, `scraper/data/eval/parking-sample-50.tsv`) labeled by Claude reading each note: 41/50 (82%) before the parser work, 46/50 (92%) now. Labeling rule: a note is `validation` only when it states a purchase or registration condition (구매, 결제, 영수증, 차량 등록, 이용 고객); a time-limited free period without one ("최초 1시간 무료, 이후 10분당 1,000원", even if labeled "조건부무료") is `free`. The parser was not tuned to these labels; its 4 misses are exactly that free-vs-conditional line and "파트너에게 요청" as the only condition.
 - Data is a snapshot (collection date in `scraper/data/normalized/collected-at.txt`) and is not refreshed automatically. Refresh: `cd scraper && npm run scrape && npm run enrich` (move `data/raw/stores-enriched.json` away first, `enrich` resumes from it), then `cd ../api && npx ts-node scripts/export-data.ts`. The skill bundles the snapshot, so re-run `skills/install.sh` after pulling new data.
 - Free time (`freeMinutes`) takes the longest duration in the note that is not a rate, price or overage ("10분당", "1시간 5천원", "30분 초과"), so tiers report their top tier (e.g. "5만원 이상 5시간" → 5h). The FREE / VALIDATION line is fuzzy for notes like "2시간 무료, 파트너에게 요청"; the skill and region files therefore tell the AI to answer from the original note.
 - The query parser uses suffix rules (`역`, `동`, `구`, ...), so unusual place names may not be recognized; without Naver API keys it falls back to a small built-in table of station coordinates.
