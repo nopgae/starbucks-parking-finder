@@ -1,8 +1,6 @@
 # Starbucks Parking Finder (Korea)
 
-Find Starbucks Korea branches with parking (free, paid, or validation with purchase) and search them in plain Korean, e.g. `강남역 근처 두시간 이상 무료 주차`.
-
-**Live demo:** https://nopgae.github.io/starbucks-parking-finder/ (the API runs on Render's free tier, so the first request after idle can take a while)
+Ask an AI assistant (Claude, Codex, ChatGPT) which Starbucks Korea branches have parking, e.g. `공덕쪽 스타벅스 주차되는 곳 알려줘`, and get free / conditional / paid parking details with Naver Map links.
 
 ## AI에게 물어보기 (Ask an AI assistant)
 
@@ -32,16 +30,15 @@ The official store locator shows parking only as free-text notes per store, with
 1. **Data collection** (`scraper/`): found the JSON endpoint behind the official store-locator page (process in [REVERSE_ENGINEER.md](REVERSE_ENGINEER.md)), captured it with Playwright, then collected all stores with axios.
 2. **Parking parser** (`api/src/utils/parkingParser.ts`): turns Korean notes like `구매 시 2시간 가능` into structured fields: type (free / paid / validation / unavailable), longest free time in minutes, location, capacity, and conditions.
 3. **Natural-language query parser** (`api/src/utils/queryParser.ts`): pulls location, minimum hours (`두시간`, `2시간`), parking type and drive-thru from a Korean query; location is geocoded with the Naver Local Search API.
-4. **REST API** (Fastify + Prisma + PostgreSQL) and a **map frontend** (Google Maps JS, plain HTML/JS) deployed to GitHub Pages.
+4. **REST API** (Fastify + Prisma + PostgreSQL) and a **map frontend** (plain HTML/JS). Archived: no longer deployed or maintained since the project moved to AI answers; the parser in `api/` is still what generates the data.
 5. **AI-readable data + skill**: `api/scripts/export-data.ts` writes `data/index.md`, one Markdown file per 시/구 under `data/regions/` (parking note, free time, Naver Map link per store) and `skills/starbucks-parking/stores.csv` for the Claude Code / Codex skill.
 6. **Tests + CI**: 21 unit tests for the two parsers (`node --test`), a TypeScript build, a check that the exported data matches the current parser, and a skill search smoke test, run by GitHub Actions.
 
 ## Results
 
 - 2,212 stores collected (2026-11-06); 2,199 have a parking note, classified by the current parser as free 401 · validation 1,043 · paid 86 · unavailable 630 · unknown 39 (`scraper/data/normalized/`; reproduce with `cd api && npx ts-node scripts/parking-eval.ts`).
-- Deployed end-to-end: GitHub Pages frontend → Render API → PostgreSQL.
 
-## API
+## API (archived)
 
 | Endpoint | Description |
 |---|---|
