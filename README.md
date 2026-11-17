@@ -21,6 +21,13 @@ git clone https://github.com/nopgae/starbucks-parking-finder.git
 
 스킬(`skills/starbucks-parking/`)은 데이터(`stores.csv`)와 검색 스크립트(`scripts/find.py`, Python 표준 라이브러리만 사용)를 함께 담고 있어서 네트워크 없이 동작합니다.
 
+**3. MCP 서버로 연결하기.** 같은 검색을 MCP 도구(`find_parking`)로 제공합니다. MCP를 지원하는 클라이언트(Claude Code, Claude Desktop 등)에 등록하면 AI가 도구를 직접 호출합니다.
+
+```bash
+claude mcp add starbucks-parking -- uv run /절대경로/starbucks-parking-finder/mcp/server.py
+uv run --with "mcp>=2" python mcp/smoke_test.py   # 실제 MCP 클라이언트로 서버를 띄워 도구 호출을 확인
+```
+
 ## Problem
 
 The official store locator shows parking only as free-text notes per store, with no way to filter by "free parking for 2+ hours near X". This project collects that data, turns the free text into structured fields, and serves it through a searchable API and map.
